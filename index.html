@@ -1,0 +1,595 @@
+<title>Dasbor Tenant Sidoarjo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: sticky filter bar over a survey-sheet grid. Peta persegi di kiri, kepadatan per cincin, arah dan kategori di kanan; tabel persaingan dan daftar tenant di bawah. */
+:root{
+  --bg:#f1f4f6; --surface:#fbfcfd; --ink:#0f1a22; --ink2:#46545f; --muted:#66747f;
+  --line:#dbe2e7; --line2:#c6d0d7; --accent:#2a78d6;
+  --c1:#2a78d6; --c2:#eb6834; --c3:#1baf7a; --faint:#c0cad1; --ringc:#aab6bf; --wash:#eef2f5;
+  --good:#0ca30c; --warn:#fab219; --crit:#d03b3b;
+  --font-ui:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1419; --surface:#151d24; --ink:#e8eef2; --ink2:#b4c0ca; --muted:#8a98a4;
+    --line:#243039; --line2:#33414c; --accent:#3987e5;
+    --c1:#3987e5; --c2:#d95926; --c3:#199e70; --faint:#3a4852; --ringc:#46545f; --wash:#1a242c;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1419; --surface:#151d24; --ink:#e8eef2; --ink2:#b4c0ca; --muted:#8a98a4;
+  --line:#243039; --line2:#33414c; --accent:#3987e5;
+  --c1:#3987e5; --c2:#d95926; --c3:#199e70; --faint:#3a4852; --ringc:#46545f; --wash:#1a242c;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-ui);font-size:14px;line-height:1.45;margin:0;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.app{max-width:1280px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1,h2,p{margin:0}
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px}
+.eyebrow{font-family:var(--font-mono);font-size:12px;color:var(--muted);letter-spacing:.02em}
+h1{font-size:30px;line-height:1.1;font-weight:600;letter-spacing:-.015em;text-wrap:balance;margin-top:4px}
+.live{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink2);min-width:0}
+.live .dot{width:9px;height:9px;border-radius:50%;background:var(--muted);flex:none}
+.live[data-s="ok"] .dot{background:var(--good)}
+.live[data-s="err"] .dot{background:var(--crit)}
+.live[data-s="load"] .dot{background:var(--warn)}
+.btn{font:inherit;font-size:13px;font-weight:500;color:var(--ink);background:var(--surface);border:1px solid var(--line2);border-radius:5px;padding:6px 12px;cursor:pointer}
+.btn:hover{background:var(--wash)}
+.btn.ghost{background:transparent}
+.btn[disabled]{opacity:.5;cursor:default}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.filters{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--bg);display:flex;flex-wrap:wrap;gap:12px 20px;align-items:flex-end;padding:10px 0;border-bottom:1px solid var(--line)}
+.f{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--ink2);min-width:0}
+.f span{font-weight:500;letter-spacing:.02em}
+.f output{font-family:var(--font-mono);color:var(--ink);margin-left:6px}
+.f input[type=range]{width:190px;max-width:100%;accent-color:var(--accent)}
+.f select,.f input[type=search]{font:inherit;font-size:13px;color:var(--ink);background:var(--surface);border:1px solid var(--line2);border-radius:5px;padding:6px 8px;min-width:0}
+.f-search{flex:1 1 200px;max-width:320px}
+.f-search input{width:100%}
+.chips{display:flex;flex-wrap:wrap;gap:6px;min-height:0}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;border:1px solid var(--line2);background:var(--surface);border-radius:999px;padding:3px 6px 3px 10px;color:var(--ink)}
+.chip button{font:inherit;line-height:1;border:0;background:transparent;color:var(--muted);cursor:pointer;padding:2px 4px;border-radius:50%}
+.chip button:hover{color:var(--ink)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.kpi{padding:14px 16px;background:var(--surface);min-width:0}
+.kpi .l{font-size:12px;color:var(--ink2);letter-spacing:.02em}
+.kpi .v{font-family:var(--font-mono);font-size:26px;font-weight:500;line-height:1.2;margin-top:2px}
+.kpi .s{font-size:12px;color:var(--muted)}
+.grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:16px;align-items:start}
+.side{display:flex;flex-direction:column;gap:16px;min-width:0}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:16px;min-width:0}
+.panel h2{font-size:15px;font-weight:600}
+.panel .sub{font-size:12.5px;color:var(--muted);margin-top:2px;text-wrap:pretty}
+.ph{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:6px 12px;margin-bottom:12px}
+.mapwrap{position:relative;width:100%;aspect-ratio:1/1;max-height:84vh;margin:0 auto}
+#map{width:100%;height:100%;display:block;background:var(--wash);border:1px solid var(--line);border-radius:4px;touch-action:manipulation}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--bg);border-radius:4px;padding:6px 9px;font-size:12px;line-height:1.35;max-width:240px;z-index:3;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.tip b{font-weight:600;display:block}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:10px;font-size:12px;color:var(--ink2)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.detail{margin-top:12px;border-top:1px solid var(--line);padding-top:12px;font-size:13px;min-height:62px}
+.detail .n{font-weight:600;font-size:15px}
+.detail .m{color:var(--ink2);margin-top:2px}
+.detail a{color:var(--accent);font-weight:500}
+.bars{display:flex;flex-direction:column;gap:7px}
+.bar{display:grid;grid-template-columns:minmax(90px,190px) minmax(0,1fr) auto;gap:10px;align-items:center;font-size:13px;width:100%;text-align:left;background:none;border:0;padding:2px 0;font-family:inherit;color:var(--ink)}
+button.bar{cursor:pointer;border-radius:4px}
+button.bar:hover{background:var(--wash)}
+.bar .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar .track{display:block;height:10px;background:var(--wash);border-radius:2px;overflow:hidden}
+.bar .fill{display:block;height:100%;background:var(--c1);border-radius:0 3px 3px 0;min-width:2px}
+.bar .val{font-family:var(--font-mono);font-size:12px;color:var(--ink2);text-align:right;white-space:nowrap}
+.bar[aria-pressed="true"]{background:var(--wash);box-shadow:inset 2px 0 0 var(--accent);padding-left:6px}
+.bar[aria-pressed="true"] .t{font-weight:600}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:4px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:7px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:500;font-size:12px;color:var(--ink2);background:var(--wash);white-space:nowrap;letter-spacing:.02em}
+th button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;letter-spacing:inherit}
+th button:hover{color:var(--ink)}
+th[aria-sort="ascending"] button::after{content:" ▲";font-size:10px}
+th[aria-sort="descending"] button::after{content:" ▼";font-size:10px}
+td.n,th.n{text-align:right;font-family:var(--font-mono);font-size:12.5px;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+tbody tr.sel td{background:var(--wash)}
+tbody tr.clk{cursor:pointer}
+tbody tr.clk:hover td{background:var(--wash)}
+td .sm{display:block;font-size:12px;color:var(--muted)}
+.st{display:inline-flex;align-items:center;gap:6px;font-size:12px;border:1px solid var(--line2);border-radius:999px;padding:1px 9px 1px 7px;white-space:nowrap}
+.st::before{content:"";width:8px;height:8px;border-radius:2px;background:var(--muted)}
+.st.jenuh::before{background:var(--crit)}
+.st.sedang::before{background:var(--warn)}
+.st.longgar::before{background:var(--good)}
+.note{font-size:12px;color:var(--muted);margin-top:10px;text-wrap:pretty}
+.pager{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:10px;font-size:12.5px;color:var(--ink2);flex-wrap:wrap}
+.empty{padding:22px 4px;color:var(--muted);font-size:13px}
+.msg{border:1px solid var(--line2);background:var(--surface);border-radius:6px;padding:14px 16px;font-size:13.5px;display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between}
+.msg[hidden]{display:none!important}
+.msg b{font-weight:600}
+#toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:5px;font-size:13px;z-index:20;max-width:90vw}
+#toast[hidden]{display:none!important}
+@media (max-width:980px){
+  .grid{grid-template-columns:minmax(0,1fr)}
+  h1{font-size:25px}
+}
+@media (max-width:700px){
+  .filters{position:static}
+}
+@media (max-width:560px){
+  .bar{grid-template-columns:minmax(70px,110px) minmax(0,1fr) auto}
+  .filters{gap:10px 14px}
+  .f input[type=range]{width:150px}
+  .kpi .v{font-size:22px}
+}
+</style>
+
+<div class="app">
+  <header class="top">
+    <div>
+      <p class="eyebrow" id="eyebrow">Radius 1 km dari titik survei</p>
+      <h1>Dasbor Tenant Sidoarjo</h1>
+    </div>
+    <div class="live" id="live" data-s="load" role="status" aria-live="polite">
+      <span class="dot"></span><span id="liveText">Memuat data dari Google Sheets…</span>
+      <button class="btn" id="refresh" type="button" disabled>Segarkan</button>
+    </div>
+  </header>
+
+  <div class="msg" id="msg" hidden></div>
+
+  <section class="filters" aria-label="Filter">
+    <label class="f"><span>Radius<output id="radiusOut">1.000 m</output></span><input id="radius" type="range" min="250" max="1000" step="50" value="1000"></label>
+    <label class="f"><span>Status</span><select id="status"><option value="buka">Buka saja</option><option value="semua">Semua</option></select></label>
+    <label class="f"><span>Rating minimum</span><select id="minRating"><option value="0">Semua</option><option value="4">4,0 ke atas</option><option value="4.5">4,5 ke atas</option></select></label>
+    <label class="f f-search"><span>Cari nama atau kategori</span><input id="q" type="search" placeholder="mis. kopi, apotek, laundry" autocomplete="off"></label>
+    <button class="btn ghost" id="reset" type="button">Atur ulang</button>
+  </section>
+  <div class="chips" id="chips" aria-label="Filter aktif"></div>
+
+  <section class="kpis" id="kpis" aria-label="Ringkasan"></section>
+
+  <main class="grid">
+    <section class="panel" aria-label="Peta sebaran">
+      <div class="ph"><div><h2>Peta sebaran</h2><p class="sub">Utara di atas. Lingkaran putus-putus: 250, 500, 750, 1.000 m dari titik survei.</p></div></div>
+      <div class="mapwrap" id="mapwrap">
+        <svg id="map" viewBox="-1100 -1100 2200 2200" role="img" aria-label="Sebaran tenant di sekitar titik survei. Daftar lengkap ada di tabel di bawah."></svg>
+        <div class="tip" id="tip" hidden></div>
+      </div>
+      <div class="legend" id="legend"></div>
+      <div class="detail" id="detail"><span class="sub">Klik sebuah titik di peta untuk melihat detail tenant.</span></div>
+    </section>
+
+    <aside class="side">
+      <section class="panel">
+        <div class="ph"><div><h2>Kepadatan per cincin jarak</h2><p class="sub">Tenant per km² pada tiap cincin 250 m.</p></div></div>
+        <div class="bars" id="rings"></div>
+      </section>
+      <section class="panel">
+        <div class="ph"><div><h2>Arah dari titik survei</h2><p class="sub">Jumlah tenant per sektor 45°.</p></div></div>
+        <div class="bars" id="dirs"></div>
+      </section>
+      <section class="panel">
+        <div class="ph"><div><h2>Kategori besar</h2><p class="sub">Klik baris untuk memfilter semuanya.</p></div></div>
+        <div class="bars" id="cats"></div>
+      </section>
+    </aside>
+  </main>
+
+  <section class="panel" aria-label="Persaingan per niche">
+    <div class="ph"><div><h2>Persaingan per niche</h2><p class="sub">Klik baris untuk menandai niche itu di peta dan di daftar tenant. Angka mengikuti filter di atas.</p></div></div>
+    <div class="tw"><table id="nicheT"><thead></thead><tbody></tbody></table></div>
+    <p class="note">Penilaian bersifat indikatif. Jenuh: 15 pesaing atau lebih dalam 500 m, atau 40 atau lebih dalam radius terpilih. Longgar: 5 pesaing atau kurang dalam 500 m dengan minimal 3 tenant sejenis. Tidak terdeteksi bisa berarti kata kunci itu belum dicari saat data diambil. Niche dicocokkan dari kata kunci pada nama dan kategori, jadi satu tenant bisa masuk lebih dari satu niche.</p>
+  </section>
+
+  <section class="panel" aria-label="Daftar tenant">
+    <div class="ph"><div><h2>Daftar tenant</h2><p class="sub" id="listSub"></p></div><button class="btn" id="dl" type="button" hidden>Unduh CSV</button></div>
+    <div class="tw"><table id="listT"><thead></thead><tbody></tbody></table></div>
+    <div class="pager"><span id="pageInfo"></span><span><button class="btn" id="prev" type="button">Sebelumnya</button> <button class="btn" id="next" type="button">Berikutnya</button></span></div>
+  </section>
+
+  <p class="note">Sumber: sheet Tenant pada Google Sheets milikmu, dibaca langsung lewat konektor Google Sheets. Data berasal dari Google Maps dan mungkin belum lengkap untuk usaha kecil atau yang tidak terdaftar. Ulasan dipakai sebagai petunjuk keramaian, bukan angka penjualan.</p>
+</div>
+<div id="toast" hidden></div>
+
+<script>
+(function(){
+'use strict';
+/* KONFIGURASI: isi tiga nilai ini sebelum dipublikasikan (lihat README). */
+var CONFIG={LAT:'ISI_LATITUDE', LNG:'ISI_LONGITUDE', SHEET_ID:'ISI_ID_SHEET'};
+var LAT0=parseFloat(CONFIG.LAT), LNG0=parseFloat(CONFIG.LNG), MLAT=111320, MLNG=111320*Math.cos(LAT0*Math.PI/180);
+var SHEET_ID=CONFIG.SHEET_ID;
+var CONFIG_OK=!isNaN(LAT0)&&!isNaN(LNG0)&&SHEET_ID.indexOf('ISI_')!==0;
+var SERVER='Google Sheets', TOOL='get_values';
+var INPUT={spreadsheetId:SHEET_ID, range:'Tenant!A1:P3000'};
+var CACHE={staleTime:0, gcTime:300000};
+var DIRS=[['U','Utara'],['TL','Timur laut'],['T','Timur'],['TG','Tenggara'],['S','Selatan'],['BD','Barat daya'],['B','Barat'],['BL','Barat laut']];
+var RINGS=[250,500,750,1000];
+var NICHES=[
+['Kedai kopi & kafe',/kopi|coffee|kafe|cafe|café|warkop/],
+['Bakso',/bakso/],
+['Mie / ramen',/\bmie\b|\bmi\b|ramen|mi ayam|mie ayam/],
+['Ayam (goreng/geprek)',/ayam|geprek|chicken|fried/],
+['Nasi goreng / warung nasi / rumah makan',/nasi goreng|warung nasi|rumah makan|\brm\b|depot|warteg|pecel|rawon|soto/],
+['Seblak / jajanan kekinian',/seblak|cilok|cireng|batagor|siomay|martabak|takoyaki|dimsum|dim sum/],
+['Pizza / burger / steak / western',/pizza|burger|steak|western|pasta|sandwich|kebab/],
+['Masakan Jepang / Korea',/sushi|japan|jepang|korea|yakiniku|bento|ramen|samyang|tteok/],
+['Seafood',/seafood|ikan|lele|udang|kepiting/],
+['Minuman (teh/boba/jus/es)',/es teh|boba|thai tea|jus |juice|minuman|drink|\btea\b|\bteh\b|mixue|es campur|es buah|cendol|dawet/],
+['Roti / kue / dessert / es krim',/kue|cake|bakery|roti|dessert|es krim|ice cream|donat|donut|brownies|pastry|cookies/],
+['Katering / nasi box',/katering|catering|nasi box|nasi kotak/],
+['Makanan sehat / salad',/salad|vegan|vegetarian|healthy|organic|organik/],
+['Laundry',/laundry|binatu|londry/],
+['Cuci mobil/motor & detailing',/cuci mobil|cuci motor|car wash|carwash|steam|doorsmeer|detailing|cuci kendaraan|coating/],
+['Bengkel mobil/motor',/bengkel|motor service|auto ?2000|honda|yamaha|suzuki|ahass|tambal ban/],
+['Salon & barbershop',/salon|barber|pangkas|cukur|hair/],
+['Klinik kecantikan / skincare',/skin|beauty|klinik kecantikan|derma|aesthetic|glow|wardah|makeup|make up|\bmua\b/],
+['Spa / pijat / refleksi',/\bspa\b|pijat|massage|refleksi|urut/],
+['Gym / yoga / pilates / olahraga',/gym|fitness|yoga|pilates|futsal|badminton|olahraga|sport|renang|bela diri|karate|taekwondo/],
+['Pet shop / klinik hewan / grooming',/\bpet\b|petshop|pet shop|\bvet\b|hewan|kucing|anjing|grooming|pakan/],
+['Bimbel / kursus / les',/bimbel|bimbingan|\bles\b|kursus|course|english|lbb|akademi|education|belajar|musik|school/],
+['Daycare / PAUD / TK',/paud|daycare|day care|\btk\b|taman kanak|kelompok bermain|playgroup|\btpa\b/],
+['Coworking / ruang kerja',/cowork|co-work|working space|shared office|virtual office/],
+['Apotek',/apotek|apotik|pharmacy/],
+['Klinik / dokter / praktik',/klinik|dokter|dr\.|drg|praktik|puskesmas|rumah sakit|\brs\b|bidan|laboratorium/],
+['Optik',/optik|optical/],
+['Servis HP / komputer / elektronik',/ponsel|\bhp\b|handphone|service|servis|komputer|laptop|gadget|konter|counter|pulsa/],
+['Percetakan / fotokopi / ATK',/print|percetakan|fotokopi|foto copy|fotocopy|\batk\b|stationery|digital printing|sablon/],
+['Toko buku',/toko buku|gramedia|bookstore/],
+['Florist',/florist|bunga|flower/],
+['Perlengkapan bayi & anak',/baby|bayi|kids|\banak\b|mainan|toys/],
+['Kos / hotel / penginapan',/\bkos\b|kost|hotel|homestay|guest ?house|penginapan|hostel|pondok|losmen|villa/],
+['Ekspedisi / kurir',/ekspedisi|kurir|j&t|jne|jnt|sicepat|cargo|kargo|anteraja|pos indonesia|kantor pos/],
+['Agen properti',/properti|property|realty|real estate|developer/],
+['Studio foto / event',/studio|photo|foto|wedding|event|rias|dekorasi/],
+['Rental / sewa',/rental|sewa|persewaan/],
+['Toko bahan kue & kitchenware',/bahan kue|peralatan kue|kitchen|perlengkapan dapur/],
+['Minimarket',/indomaret|alfamart|alfamidi|minimarket|swalayan|superindo/],
+['Toko pakaian / fashion',/pakaian|fashion|butik|boutique|garment|hijab|busana|distro|sepatu|\btas\b|baju|konveksi|batik/],
+['Toko bahan bangunan',/bangunan|material|besi|keramik|\btb\./]
+];
+
+var $=function(id){return document.getElementById(id)};
+var esc=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+var nf=new Intl.NumberFormat('id-ID');
+var fmt=function(n){return nf.format(n)};
+var fr=function(n){return n==null?'–':(Math.round(n*10)/10).toFixed(1).replace('.',',')};
+var median=function(a){if(!a.length)return null;var s=a.slice().sort(function(x,y){return x-y}),m=s.length>>1;return s.length%2?s[m]:(s[m-1]+s[m])/2};
+
+var state={rows:[],loaded:false,updatedAt:null,hash:'',radius:1000,status:'buka',minRating:0,q:'',kat:new Set(),niche:null,
+  nSort:{k:'n',d:1},lSort:{k:'d',d:1},page:0,selected:null,vis:[]};
+var mcp=null, dl=null, lastErr=null;
+
+function toNum(v){if(v==null||v==='')return null;if(typeof v==='number')return v;var s=String(v).trim().replace(/\s/g,'');if(!s)return null;
+  if(s.indexOf(',')>-1&&s.indexOf('.')===-1)s=s.replace(',','.');else if(s.indexOf(',')>-1&&s.indexOf('.')>-1)s=s.replace(/\./g,'').replace(',','.');
+  var n=parseFloat(s);return isNaN(n)?null:n}
+function toInt(v){if(v==null||v==='')return null;var s=String(v).replace(/[^\d-]/g,'');return s===''?null:parseInt(s,10)}
+
+function parse(values){
+  var h=(values[0]||[]).map(function(x){return String(x).trim()}),ix={};
+  h.forEach(function(n,i){ix[n]=i});
+  function g(r,n){var i=ix[n];return i==null?'':(r[i]==null?'':r[i])}
+  var out=[];
+  for(var i=1;i<values.length;i++){
+    var r=values[i];if(!r||!r.length)continue;
+    var lat=toNum(g(r,'Latitude')),lng=toNum(g(r,'Longitude')),nama=String(g(r,'Nama Tenant')).trim();
+    if(lat==null||lng==null||!nama)continue;
+    var y=(lat-LAT0)*MLAT,x=(lng-LNG0)*MLNG,d=toInt(g(r,'Jarak (m)'));
+    if(d==null)d=Math.round(Math.hypot(x,y));
+    var b=(Math.atan2(x,y)*180/Math.PI+360)%360,di=Math.round(b/45)%8;
+    var kat=String(g(r,'Kategori')).trim(),besar=String(g(r,'Kategori Besar')).trim()||'(belum dikelompokkan)';
+    var link=String(g(r,'Link Google Maps')).trim();
+    out.push({id:i,nama:nama,kat:kat,besar:besar,sub:String(g(r,'Sub-kelompok')).trim(),alamat:String(g(r,'Alamat')).trim(),
+      tel:String(g(r,'Telepon')).trim(),web:String(g(r,'Website')).trim(),rating:toNum(g(r,'Rating')),ulasan:toInt(g(r,'Jumlah Ulasan')),
+      status:String(g(r,'Status')).trim(),d:d,x:x,y:y,lat:lat,lng:lng,di:di,
+      link:/^https:\/\/(www\.)?google\.[a-z.]+\/maps/.test(link)?link:'',
+      grp:besar==='Kuliner'?'k':(besar==='Ritel & Toko Umum'||besar==='Toko Makanan & Bahan Pangan'?'r':'l'),
+      txt:(nama+' | '+kat).toLowerCase()});
+  }
+  return out;
+}
+
+function nicheRx(){if(!state.niche)return null;for(var i=0;i<NICHES.length;i++)if(NICHES[i][0]===state.niche)return NICHES[i][1];return null}
+function base(skipKat,skipNiche){
+  var q=state.q.trim().toLowerCase(),rx=skipNiche?null:nicheRx();
+  return state.rows.filter(function(r){
+    if(r.d>state.radius)return false;
+    if(state.status==='buka'&&r.status!=='Buka')return false;
+    if(state.minRating>0&&(r.rating==null||r.rating<state.minRating))return false;
+    if(q&&r.txt.indexOf(q)===-1&&r.besar.toLowerCase().indexOf(q)===-1)return false;
+    if(!skipKat&&state.kat.size&&!state.kat.has(r.besar))return false;
+    if(rx&&!rx.test(r.txt))return false;
+    return true});
+}
+
+/* ---------- render ---------- */
+function renderKpis(f){
+  var n=f.length,rev=f.map(function(r){return r.ulasan}).filter(function(v){return v!=null}),
+      rated=f.filter(function(r){return r.rating!=null}),
+      big=f.filter(function(r){return r.ulasan!=null&&r.ulasan>=100}).length,
+      noweb=f.filter(function(r){return !r.web}).length;
+  var avg=rated.length?rated.reduce(function(a,r){return a+r.rating},0)/rated.length:null;
+  function t(l,v,s){return '<div class="kpi"><div class="l">'+l+'</div><div class="v">'+v+'</div><div class="s">'+s+'</div></div>'}
+  $('kpis').innerHTML=
+    t('Tenant dalam filter',state.loaded?fmt(n):'–',state.loaded?'dari '+fmt(state.rows.length)+' di sheet':'menunggu data')+
+    t('Median ulasan',state.loaded&&rev.length?fmt(median(rev)):'–','per tenant; '+(state.loaded&&n?Math.round(big/n*100):0)+'% punya 100+ ulasan')+
+    t('Rating rata-rata',state.loaded?fr(avg):'–',state.loaded?fmt(n-rated.length)+' tenant belum ada rating':'')+
+    t('Tanpa website atau medsos',state.loaded&&n?Math.round(noweb/n*100)+'%':'–',state.loaded?fmt(noweb)+' tenant':'');
+}
+
+function renderChips(){
+  var h='';
+  state.kat.forEach(function(k){h+='<span class="chip">Kategori: '+esc(k)+'<button type="button" data-rk="'+esc(k)+'" aria-label="Hapus filter '+esc(k)+'">×</button></span>'});
+  if(state.niche)h+='<span class="chip">Niche: '+esc(state.niche)+'<button type="button" data-rn="1" aria-label="Hapus filter niche">×</button></span>';
+  $('chips').innerHTML=h;
+}
+
+var GCOL={k:'var(--c1)',r:'var(--c2)',l:'var(--muted)'};
+function renderMap(f){
+  var svg=$('map'),h='';
+  RINGS.forEach(function(r){
+    var act=r<=state.radius;
+    h+='<circle cx="0" cy="0" r="'+r+'" fill="none" stroke="var(--ringc)" stroke-width="'+(r===state.radius?5:3)+'" '+(r===state.radius?'':'stroke-dasharray="14 12" ')+'opacity="'+(act?1:.35)+'"/>';
+    h+='<text x="'+(r-12)+'" y="-12" text-anchor="end" font-size="36" fill="var(--muted)" font-family="IBM Plex Mono,monospace">'+(r>=1000?'1 km':r+' m')+'</text>';
+  });
+  h+='<line x1="-1000" y1="0" x2="1000" y2="0" stroke="var(--line2)" stroke-width="2"/><line x1="0" y1="-1000" x2="0" y2="1000" stroke="var(--line2)" stroke-width="2"/>';
+  h+='<text x="0" y="-1040" text-anchor="middle" font-size="44" fill="var(--ink2)" font-weight="600">U</text><text x="0" y="1085" text-anchor="middle" font-size="44" fill="var(--ink2)" font-weight="600">S</text><text x="1062" y="16" text-anchor="middle" font-size="44" fill="var(--ink2)" font-weight="600">T</text><text x="-1062" y="16" text-anchor="middle" font-size="44" fill="var(--ink2)" font-weight="600">B</text>';
+  var rx=nicheRx(),vis=[],dots='',hl='';
+  f.forEach(function(r){
+    vis.push(r);
+    if(state.niche){
+      if(r.txt&&rx&&rx.test(r.txt))hl+='<circle cx="'+r.x.toFixed(0)+'" cy="'+(-r.y).toFixed(0)+'" r="13" fill="var(--c1)" stroke="var(--surface)" stroke-width="4"/>';
+    }else dots+='<circle cx="'+r.x.toFixed(0)+'" cy="'+(-r.y).toFixed(0)+'" r="10" fill="'+GCOL[r.grp]+'" fill-opacity=".85"/>';
+  });
+  if(state.niche){
+    // titik non-niche (dengan filter lain) sebagai latar redup
+    base(false,true).forEach(function(r){if(!rx.test(r.txt))dots+='<circle cx="'+r.x.toFixed(0)+'" cy="'+(-r.y).toFixed(0)+'" r="7" fill="var(--faint)"/>'});
+  }
+  h+=dots+hl;
+  var s=state.selected;
+  if(s&&s.d<=state.radius)h+='<circle cx="'+s.x.toFixed(0)+'" cy="'+(-s.y).toFixed(0)+'" r="26" fill="none" stroke="var(--ink)" stroke-width="6"/>';
+  h+='<path d="M0 -30 L30 0 L0 30 L-30 0Z" fill="var(--ink)" stroke="var(--surface)" stroke-width="7" paint-order="stroke"/>';
+  svg.innerHTML=h;
+  state.vis=vis;
+  $('legend').innerHTML=state.niche?
+    '<span><i style="background:var(--c1)"></i>'+esc(state.niche)+'</span><span><i style="background:var(--faint)"></i>Tenant lain</span><span>◆ Titik survei</span>':
+    '<span><i style="background:var(--c1)"></i>Kuliner</span><span><i style="background:var(--c2)"></i>Ritel dan bahan pangan</span><span><i style="background:var(--muted)"></i>Lainnya</span><span>◆ Titik survei</span>';
+}
+
+function bar(label,pct,val,extra){return '<div class="bar"'+(extra||'')+'><span class="t" title="'+esc(label)+'">'+esc(label)+'</span><span class="track"><span class="fill" style="width:'+pct.toFixed(1)+'%"></span></span><span class="val">'+val+'</span></div>'}
+function renderRings(f){
+  var rows=[],prev=0,max=0;
+  RINGS.forEach(function(r){
+    if(prev>=state.radius)return;
+    var hi=Math.min(r,state.radius),n=f.filter(function(x){return x.d>prev&&x.d<=hi}).length,area=Math.PI*(hi*hi-prev*prev)/1e6;
+    rows.push({l:prev+'–'+hi+' m',n:n,den:n/area});max=Math.max(max,n/area);prev=r;
+  });
+  $('rings').innerHTML=state.loaded?rows.map(function(r){return bar(r.l,max?r.den/max*100:0,fmt(Math.round(r.den))+'/km² · '+fmt(r.n))}).join(''):'<p class="empty">Menunggu data.</p>';
+}
+function renderDirs(f){
+  var c=DIRS.map(function(){return 0});f.forEach(function(r){c[r.di]++});var max=Math.max.apply(null,c.concat([1]));
+  $('dirs').innerHTML=state.loaded?DIRS.map(function(d,i){return bar(d[1],c[i]/max*100,fmt(c[i]))}).join(''):'<p class="empty">Menunggu data.</p>';
+}
+function renderCats(){
+  var f=base(true,false),m={};f.forEach(function(r){m[r.besar]=(m[r.besar]||0)+1});
+  var arr=Object.keys(m).map(function(k){return [k,m[k]]}).sort(function(a,b){return b[1]-a[1]}),max=arr.length?arr[0][1]:1;
+  $('cats').innerHTML=state.loaded&&arr.length?arr.map(function(a){
+    return '<button type="button" class="bar" data-cat="'+esc(a[0])+'" aria-pressed="'+(state.kat.has(a[0])?'true':'false')+'"><span class="t" title="'+esc(a[0])+'">'+esc(a[0])+'</span><span class="track"><span class="fill" style="width:'+(a[1]/max*100).toFixed(1)+'%"></span></span><span class="val">'+fmt(a[1])+'</span></button>'}).join(''):'<p class="empty">'+(state.loaded?'Tidak ada tenant pada filter ini.':'Menunggu data.')+'</p>';
+}
+
+function verdict(m){
+  if(m.n===0)return ['tidak','Tidak terdeteksi'];
+  if(m.n<3)return ['sedikit','Data sedikit'];
+  if(m.d500>=15||m.n>=40)return ['jenuh','Jenuh'];
+  if(m.d500<=5)return ['longgar','Longgar'];
+  return ['sedang','Sedang'];
+}
+function nicheMetrics(){
+  var f=base(false,true);
+  return NICHES.map(function(nz){
+    var m=f.filter(function(r){return nz[1].test(r.txt)}),
+        rev=m.map(function(r){return r.ulasan}).filter(function(v){return v!=null}),
+        rt=m.filter(function(r){return r.rating!=null}),
+        low=rt.filter(function(r){return r.rating<4.2}).length;
+    var o={name:nz[0],n:m.length,d300:m.filter(function(r){return r.d<=300}).length,d500:m.filter(function(r){return r.d<=500}).length,
+      near:m.length?Math.min.apply(null,m.map(function(r){return r.d})):null,med:median(rev),
+      rating:rt.length?rt.reduce(function(a,r){return a+r.rating},0)/rt.length:null,low:rt.length?low/rt.length*100:null};
+    o.v=verdict(o);return o});
+}
+var NCOLS=[['name','Niche',0],['n','Jumlah',1],['d300','≤300 m',1],['d500','≤500 m',1],['near','Terdekat (m)',1],['med','Median ulasan',1],['rating','Rating',1],['low','% rating <4,2',1],['v','Penilaian',0]];
+function renderNiche(){
+  var th=$('nicheT').querySelector('thead'),tb=$('nicheT').querySelector('tbody');
+  th.innerHTML='<tr>'+NCOLS.map(function(c){var on=state.nSort.k===c[0];return '<th class="'+(c[2]?'n':'')+'" aria-sort="'+(on?(state.nSort.d>0?'ascending':'descending'):'none')+'"><button type="button" data-ns="'+c[0]+'">'+c[1]+'</button></th>'}).join('')+'</tr>';
+  if(!state.loaded){tb.innerHTML='<tr><td colspan="9" class="empty">Menunggu data dari Google Sheets.</td></tr>';return}
+  var rows=nicheMetrics(),k=state.nSort.k,d=state.nSort.d,order={jenuh:0,sedang:1,longgar:2,sedikit:3,tidak:4};
+  rows.sort(function(a,b){
+    var x,y;
+    if(k==='name'){return d*a.name.localeCompare(b.name,'id')}
+    if(k==='v'){x=order[a.v[0]];y=order[b.v[0]]}
+    else{x=a[k];y=b[k]}
+    if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return -1;
+    if(k==='n'){if(a.n===0&&b.n>0)return 1;if(b.n===0&&a.n>0)return -1}
+    return d*(x-y)||a.name.localeCompare(b.name,'id')});
+  tb.innerHTML=rows.map(function(r){
+    var sel=state.niche===r.name;
+    return '<tr class="clk'+(sel?' sel':'')+'" data-niche="'+esc(r.name)+'" tabindex="0" aria-pressed="'+sel+'"><td>'+esc(r.name)+'</td><td class="n">'+r.n+'</td><td class="n">'+r.d300+'</td><td class="n">'+r.d500+'</td><td class="n">'+(r.near==null?'–':r.near)+'</td><td class="n">'+(r.med==null?'–':fmt(r.med))+'</td><td class="n">'+fr(r.rating)+'</td><td class="n">'+(r.low==null?'–':Math.round(r.low)+'%')+'</td><td><span class="st '+r.v[0]+'">'+r.v[1]+'</span></td></tr>'}).join('');
+}
+
+var LCOLS=[['nama','Tenant',0],['besar','Kategori besar',0],['rating','Rating',1],['ulasan','Ulasan',1],['d','Jarak (m)',1],['di','Arah',0],['tel','Telepon',0],['link','Peta',0]];
+var PAGE=25;
+function sortedList(f){
+  var k=state.lSort.k,d=state.lSort.d;
+  return f.slice().sort(function(a,b){
+    var x=a[k],y=b[k];
+    if(k==='nama'||k==='besar')return d*String(x).localeCompare(String(y),'id');
+    if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return -1;
+    return d*(x-y)||a.d-b.d});
+}
+function renderList(f){
+  var th=$('listT').querySelector('thead'),tb=$('listT').querySelector('tbody');
+  th.innerHTML='<tr>'+LCOLS.map(function(c){var on=state.lSort.k===c[0],sortable=c[0]!=='link'&&c[0]!=='tel';
+    return '<th class="'+(c[2]?'n':'')+'" aria-sort="'+(on?(state.lSort.d>0?'ascending':'descending'):'none')+'">'+(sortable?'<button type="button" data-ls="'+c[0]+'">'+c[1]+'</button>':c[1])+'</th>'}).join('')+'</tr>';
+  var lst=sortedList(f),pages=Math.max(1,Math.ceil(lst.length/PAGE));
+  if(state.page>=pages)state.page=pages-1;
+  var s=state.page*PAGE,slice=lst.slice(s,s+PAGE);
+  $('listSub').textContent=state.loaded?fmt(f.length)+' tenant sesuai filter'+(state.niche?' · niche: '+state.niche:''):'Menunggu data.';
+  if(!state.loaded)tb.innerHTML='<tr><td colspan="8" class="empty">Menunggu data dari Google Sheets.</td></tr>';
+  else if(!slice.length)tb.innerHTML='<tr><td colspan="8" class="empty">Tidak ada tenant yang cocok. Longgarkan filter atau tekan Atur ulang.</td></tr>';
+  else tb.innerHTML=slice.map(function(r){
+    return '<tr class="clk'+(state.selected&&state.selected.id===r.id?' sel':'')+'" data-id="'+r.id+'"><td>'+esc(r.nama)+'<span class="sm">'+esc(r.kat||'–')+'</span></td><td>'+esc(r.besar)+'</td><td class="n">'+fr(r.rating)+'</td><td class="n">'+(r.ulasan==null?'–':fmt(r.ulasan))+'</td><td class="n">'+fmt(r.d)+'</td><td>'+DIRS[r.di][1]+'</td><td>'+esc(r.tel||'–')+'</td><td>'+(r.link?'<a href="'+esc(r.link)+'" target="_blank" rel="noopener noreferrer">Buka</a>':'–')+'</td></tr>'}).join('');
+  $('pageInfo').textContent=state.loaded&&lst.length?(s+1)+'–'+Math.min(s+PAGE,lst.length)+' dari '+fmt(lst.length):'';
+  $('prev').disabled=state.page<=0;$('next').disabled=state.page>=pages-1;
+  $('dl').hidden=!dl||!state.loaded;
+}
+function renderDetail(){
+  var r=state.selected,el=$('detail');
+  if(!r){el.innerHTML='<span class="sub">Klik sebuah titik di peta untuk melihat detail tenant.</span>';return}
+  el.innerHTML='<div class="n">'+esc(r.nama)+'</div><div class="m">'+esc(r.kat||'–')+' · '+esc(r.besar)+'</div><div class="m">Rating '+fr(r.rating)+(r.ulasan!=null?' ('+fmt(r.ulasan)+' ulasan)':' (belum ada ulasan)')+' · '+fmt(r.d)+' m ke arah '+DIRS[r.di][1].toLowerCase()+'</div><div class="m">'+esc(r.alamat)+'</div>'+(r.tel?'<div class="m">'+esc(r.tel)+'</div>':'')+(r.link?'<div class="m"><a href="'+esc(r.link)+'" target="_blank" rel="noopener noreferrer">Buka di Google Maps</a></div>':'');
+}
+function renderAll(){
+  var f=base(false,false);
+  $('radiusOut').textContent=fmt(state.radius)+' m';
+  renderKpis(f);renderChips();renderMap(f);renderRings(f);renderDirs(f);renderCats();renderNiche();renderList(f);renderDetail();
+}
+
+/* ---------- status & errors ---------- */
+function setLive(s,text){var l=$('live');l.dataset.s=s;$('liveText').textContent=text;$('refresh').disabled=(s==='load'||!mcp)}
+function ago(){
+  if(!state.updatedAt)return;
+  var m=Math.round((Date.now()-state.updatedAt)/60000),t=new Date(state.updatedAt).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+  setLive(lastErr?'err':'ok',(lastErr?'Gagal menyegarkan, menampilkan data terakhir · ':'Data langsung dari Google Sheets · ')+'diperbarui '+t+(m>0?' ('+m+' mnt lalu)':''));
+}
+function showMsg(html){var m=$('msg');if(!html){m.hidden=true;m.innerHTML='';return}m.hidden=false;m.innerHTML=html}
+var AUTHZ={needs_reauth:1,server_not_connected:1,selection_required:1,not_in_manifest:1,blocked_by_policy:1,approval_required:1,not_granted:1,capability_disabled:1,capability_removed:1,consent_required:1};
+function fail(e){
+  var c=e&&e.code||'upstream_error';
+  if(AUTHZ[c]){state.rows=[];state.loaded=false;state.updatedAt=null;renderAll()}
+  var t,btn='<button class="btn" type="button" id="retry">Coba lagi</button>';
+  if(c==='needs_reauth')t='<span><b>Sambungan Google Sheets perlu dihubungkan ulang.</b> Buka claude.ai, Pengaturan, Konektor, lalu sambungkan ulang Google Sheets.</span>';
+  else if(c==='server_not_connected'||c==='selection_required')t='<span><b>Konektor Google Sheets belum tersedia.</b> Tambahkan atau pilih konektor Google Sheets di claude.ai, Pengaturan, Konektor.</span>';
+  else if(c==='approval_required'||c==='not_in_manifest'||c==='consent_required')t='<span><b>Dasbor belum diizinkan membaca sheet-mu.</b> Setujui akses Google Sheets untuk halaman ini, lalu coba lagi.</span>'+btn;
+  else if(c==='blocked_by_policy')t='<span><b>Organisasimu memblokir akses Google Sheets untuk halaman ini.</b></span>';
+  else if(c==='tool_error')t='<span><b>Google Sheets menolak permintaan.</b> '+esc(e.message||'')+' Pastikan sheet “Tenant” masih ada dan kamu punya akses.</span>'+btn;
+  else if(c==='server_unavailable'||c==='rate_limited')t='<span><b>Google Sheets sedang tidak merespons.</b> Data terakhir tetap ditampilkan.</span>'+btn;
+  else t='<span><b>Data belum bisa dimuat.</b> '+esc(e&&e.message||'')+'</span>'+btn;
+  lastErr=c;
+  showMsg(t);
+  setLive('err',state.loaded?'Gagal menyegarkan, menampilkan data terakhir':'Data belum termuat');
+}
+function toast(t){var el=$('toast');el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(function(){el.hidden=true},3200)}
+
+/* ---------- data ---------- */
+function hashStr(s){var h=5381;for(var i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return h+':'+s.length}
+function ingest(res){
+  var p=res&&res.payload;
+  if(typeof p==='string'){try{p=JSON.parse(p)}catch(e){p=null}}
+  var values=p&&Array.isArray(p.values)?p.values:(Array.isArray(p)?p:null);
+  if(!values&&res&&res.content&&res.content[0]&&res.content[0].text){try{var j=JSON.parse(res.content[0].text);values=j.values}catch(e){}}
+  if(!values||!values.length)throw {code:'tool_error',message:'Sheet “Tenant” kosong atau formatnya tidak terbaca.'};
+  lastErr=null;showMsg('');
+  var stamp=(res.cache&&res.cache.storedAt)||Date.now();
+  var hs=hashStr(JSON.stringify(values));
+  state.updatedAt=stamp;
+  if(hs!==state.hash||!state.loaded){state.hash=hs;state.rows=parse(values);state.loaded=true;state.selected=null;renderAll()}
+  ago();
+}
+function load(refresh){
+  setLive('load','Memuat data dari Google Sheets…');
+  var o={cache:refresh?{staleTime:0,gcTime:300000,refresh:true}:CACHE};
+  return mcp.callTool(SERVER,TOOL,INPUT,o).then(ingest).catch(fail);
+}
+function onWatch(ev){
+  if(ev.type==='data'){try{ingest(ev.result)}catch(e){fail(e)}}
+  else fail(ev.error);
+}
+function csv(f){
+  var cols=['Nama Tenant','Kategori','Kategori Besar','Sub-kelompok','Alamat','Telepon','Website','Rating','Jumlah Ulasan','Status','Jarak (m)','Arah','Latitude','Longitude','Link Google Maps'];
+  function q(v){v=v==null?'':String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
+  var lines=[cols.join(',')];
+  sortedList(f).forEach(function(r){lines.push([r.nama,r.kat,r.besar,r.sub,r.alamat,r.tel,r.web,r.rating,r.ulasan,r.status,r.d,DIRS[r.di][1],r.lat,r.lng,r.link].map(q).join(','))});
+  return '﻿'+lines.join('\n');
+}
+
+/* ---------- events ---------- */
+function rerender(){state.page=0;renderAll()}
+$('radius').addEventListener('input',function(e){state.radius=+e.target.value;rerender()});
+$('status').addEventListener('change',function(e){state.status=e.target.value;rerender()});
+$('minRating').addEventListener('change',function(e){state.minRating=+e.target.value;rerender()});
+$('q').addEventListener('input',function(e){state.q=e.target.value;rerender()});
+$('reset').addEventListener('click',function(){
+  state.radius=1000;state.status='buka';state.minRating=0;state.q='';state.kat.clear();state.niche=null;state.selected=null;
+  $('radius').value=1000;$('status').value='buka';$('minRating').value='0';$('q').value='';rerender()});
+$('refresh').addEventListener('click',function(){if(mcp){if(mcp.invalidate)mcp.invalidate(SERVER,TOOL,INPUT).catch(function(){});load(true)}});
+$('msg').addEventListener('click',function(e){if(e.target&&e.target.id==='retry'&&mcp)load(true)});
+$('chips').addEventListener('click',function(e){
+  var b=e.target.closest('button');if(!b)return;
+  if(b.dataset.rk)state.kat.delete(b.dataset.rk);if(b.dataset.rn)state.niche=null;rerender()});
+$('cats').addEventListener('click',function(e){
+  var b=e.target.closest('[data-cat]');if(!b)return;var k=b.dataset.cat;
+  if(state.kat.has(k))state.kat.delete(k);else state.kat.add(k);rerender()});
+function pickNiche(el){var n=el.dataset.niche;state.niche=state.niche===n?null:n;rerender()}
+$('nicheT').addEventListener('click',function(e){
+  var s=e.target.closest('[data-ns]');
+  if(s){var k=s.dataset.ns;state.nSort=state.nSort.k===k?{k:k,d:-state.nSort.d}:{k:k,d:(k==='name'||k==='v'||k==='near')?1:-1};renderNiche();return}
+  var r=e.target.closest('[data-niche]');if(r)pickNiche(r)});
+$('nicheT').addEventListener('keydown',function(e){if((e.key==='Enter'||e.key===' ')&&e.target.matches('[data-niche]')){e.preventDefault();pickNiche(e.target)}});
+$('listT').addEventListener('click',function(e){
+  var s=e.target.closest('[data-ls]');
+  if(s){var k=s.dataset.ls;state.lSort=state.lSort.k===k?{k:k,d:-state.lSort.d}:{k:k,d:(k==='nama'||k==='besar'||k==='d'||k==='di')?1:-1};state.page=0;renderList(base(false,false));return}
+  if(e.target.closest('a'))return;
+  var r=e.target.closest('[data-id]');
+  if(r){var id=+r.dataset.id;state.selected=state.rows.filter(function(x){return x.id===id})[0]||null;renderMap(base(false,false));renderDetail();renderList(base(false,false));$('map').scrollIntoView({block:'nearest',behavior:'smooth'})}});
+$('prev').addEventListener('click',function(){state.page=Math.max(0,state.page-1);renderList(base(false,false))});
+$('next').addEventListener('click',function(){state.page++;renderList(base(false,false))});
+$('dl').addEventListener('click',function(){
+  if(!dl)return;
+  dl.save({filename:'tenant_sidoarjo_terfilter.csv',data:csv(base(false,false))}).then(function(){toast('File CSV tersimpan.')}).catch(function(e){
+    if(e&&e.code==='declined')return;
+    toast(e&&e.code==='rate_limited'?'Tunggu sebentar lalu coba unduh lagi.':'Unduhan tidak tersedia di tampilan ini.')});
+});
+/* hover & klik pada peta */
+function nearest(ev){
+  var svg=$('map'),rc=svg.getBoundingClientRect(),sc=2200/rc.width,wx=-1100+(ev.clientX-rc.left)*sc,wy=1100-(ev.clientY-rc.top)*sc,best=null,bd=Infinity,lim=(ev.pointerType==='touch'?26:16)*sc;
+  for(var i=0;i<state.vis.length;i++){var r=state.vis[i],dx=r.x-wx,dy=r.y-wy,d=dx*dx+dy*dy;if(d<bd){bd=d;best=r}}
+  return best&&Math.sqrt(bd)<=lim?best:null;
+}
+$('map').addEventListener('pointermove',function(ev){
+  var r=nearest(ev),tip=$('tip');
+  if(!r){tip.hidden=true;return}
+  var w=$('mapwrap').getBoundingClientRect();
+  tip.innerHTML='<b>'+esc(r.nama)+'</b>'+esc(r.kat||'–')+'<br>'+(r.rating!=null?fr(r.rating)+' · '+fmt(r.ulasan||0)+' ulasan · ':'')+fmt(r.d)+' m '+DIRS[r.di][1].toLowerCase();
+  tip.hidden=false;
+  var x=ev.clientX-w.left+14,y=ev.clientY-w.top+14;
+  if(x+tip.offsetWidth>w.width)x=ev.clientX-w.left-tip.offsetWidth-14;
+  if(y+tip.offsetHeight>w.height)y=ev.clientY-w.top-tip.offsetHeight-14;
+  tip.style.left=Math.max(0,x)+'px';tip.style.top=Math.max(0,y)+'px';
+});
+$('map').addEventListener('pointerleave',function(){$('tip').hidden=true});
+$('map').addEventListener('click',function(ev){
+  var r=nearest(ev);state.selected=r||null;renderMap(base(false,false));renderDetail();renderList(base(false,false))});
+
+/* ---------- boot ---------- */
+async function boot(){
+  renderAll();
+  if(!CONFIG_OK){setLive('err','Konfigurasi belum diisi.');showMsg('<span><b>Konfigurasi belum diisi.</b> Isi CONFIG (LAT, LNG, SHEET_ID) di bagian atas skrip, lalu publikasikan ulang. Lihat README.</span>');return}
+  $('eyebrow').textContent='Radius 1 km · titik survei '+LAT0.toFixed(4).replace('.',',')+' · '+LNG0.toFixed(4).replace('.',',');
+  var c=window.claude;
+  if(!c||!c.use){setLive('err','Halaman ini hanya berfungsi saat dibuka lewat claude.ai.');showMsg('<span><b>Data tidak bisa dimuat di sini.</b> Buka dasbor ini lewat claude.ai dengan akun yang punya konektor Google Sheets.</span>');return}
+  try{mcp=await c.use('mcp')}catch(e){mcp=null}
+  try{dl=await c.use('downloads')}catch(e){dl=null}
+  if(!mcp){setLive('err','Konektor Google Sheets tidak tersedia di tampilan ini.');showMsg('<span><b>Dasbor tidak bisa membaca Google Sheets di tampilan ini.</b> Buka lewat claude.ai (web atau aplikasi desktop) dengan akun pemilik.</span>');return}
+  $('refresh').disabled=false;
+  await load(false);
+  try{mcp.watchTool(SERVER,TOOL,INPUT,onWatch,{cache:CACHE,refetchInterval:120000})}catch(e){}
+  setInterval(function(){if(state.updatedAt)ago()},30000);
+}
+boot();
+})();
+</script>

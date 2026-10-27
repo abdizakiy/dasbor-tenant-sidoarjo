@@ -1,0 +1,7 @@
+# Data tenant tidak disimpan di repo ini
+*.csv
+*.xlsx
+*.xls
+*.json
+data/
+.env
